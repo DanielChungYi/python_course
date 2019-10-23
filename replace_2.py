@@ -1,0 +1,13 @@
+fin = open("COCO_train2014_000000292053.txt", "rt")
+data = fin.read()
+data = data.replace('Bat', '0 ')
+data = data.replace('Bear', '1 ')
+data = data.replace('Bee', '2 ')
+data = data.replace('Boat', '3 ')
+data = data.replace('Boot', '4 ')
+data = data.replace(',', ' ')
+fin.close()
+
+fin = open("data.txt", "wt")
+fin.write(data)
+fin.close()
