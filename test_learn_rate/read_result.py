@@ -24,3 +24,7 @@ for file in dirs:
 
 best_lr = max(best.items(), key=operator.itemgetter(1))[0]
 print(best_lr)
+
+
+#open(file)  或是 pd.read_csv(file) 讀進來的每一列都為string
+#用 split row 當中每個 column 分開
