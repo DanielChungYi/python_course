@@ -27,4 +27,4 @@ print(best_lr)
 
 
 #open(file)  或是 pd.read_csv(file) 讀進來的每一列都為string
-#用 split row 當中每個 column 分開
+#用 split把每一列當中的每個 column 分開
