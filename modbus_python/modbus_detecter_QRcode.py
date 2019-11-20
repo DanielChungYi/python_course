@@ -1,3 +1,8 @@
+
+######################################################################
+# this code is fork from yolov3-ultralytics detection                #
+# using QRcode to identify camera id and send modbus command         #
+######################################################################
 import argparse
 import time
 from sys import platform
