@@ -1,3 +1,7 @@
+######################################################################
+# this code is fork from yolov3-ultralytics detection                #
+# using muti-rtsp as camera input complete switch and detect mission #
+######################################################################
 import argparse
 from sys import platform
 
