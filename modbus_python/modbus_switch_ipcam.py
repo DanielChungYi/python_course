@@ -1,7 +1,3 @@
-######################################################################
-# this code is fork from yolov3-ultralytics detection                #
-# using muti-rtsp as camera input complete switch and detect mission #
-######################################################################
 import argparse
 from sys import platform
 
@@ -9,6 +5,10 @@ from models import *  # set ONNX_EXPORT in models.py
 from utils.datasets import *
 from utils.utils import *
 
+from pymodbus.client.sync import ModbusTcpClient as ModbusClient
+import numpy as np
+import cv2
+from PIL import ImageGrab
 
 def detect(save_txt=False, save_img=False):
     img_size = (320, 192) if ONNX_EXPORT else opt.img_size  # (320, 192) or (416, 256) or (608, 352) for (height, width)
@@ -88,19 +88,24 @@ def detect(save_txt=False, save_img=False):
 
     # Run inference
     t0 = time.time()
-    tag = len(list_source)
+    num_of_camera = len(list_source)
+
+    #mocbus comaand
+    command = []
+    for i in range(10):
+        command.append(0)
+        #print(bool(command[i]))
+
     while (True):
         print("start switch")
-        for i in range(tag):
+        for camera_id in range(num_of_camera):
             t = time.time()
             count1 = 0
             dataset = dataset_list[i]
             for path, img, im0s, vid_cap in dataset:
-                print("!!!!!!!!!!!!!!!!!!")
-                count1 = count1 + 1
+                count1 += 1
                 print(count1)
                 if count1 > 1:
-                    print("++++++++++++++++++++")
                     break
                 # Get detections
                 img = torch.from_numpy(img).to(device)
@@ -130,7 +135,14 @@ def detect(save_txt=False, save_img=False):
                     if det is not None and len(det):
                         # Rescale boxes from img_size to im0 size
                         det[:, :4] = scale_coords(img.shape[2:], det[:, :4], im0.shape).round()
-
+                        #modbus
+                        if(camera_id > 1 and camera_id <= 10):
+                            command[int(camera_id-1)] = True
+                            rq = client.write_coils(0, command, unit=1)
+                            rr = client.read_coils(0, 10, unit=1)
+                        else:
+                            rq = client.write_coils(0, command, unit=1)
+                            rr = client.read_coils(0, 10, unit=1)
                         # Print results
                         for c in det[:, -1].unique():
                             n = (det[:, -1] == c).sum()  # detections per class
@@ -146,7 +158,15 @@ def detect(save_txt=False, save_img=False):
                                 label = '%s %.2f' % (classes[int(cls)], conf)
                                 # xyxy
                                 plot_one_box(xyxy, im0, label=label, color=colors[int(cls)])
-
+                    else:
+                        #modbus
+                        if(camera_id > 1 and camera_id <= 10):
+                            command[int(camera_id-1)] = False
+                            rq = client.write_coils(0, command, unit=1)
+                            rr = client.read_coils(0, 8, unit=1)
+                        else:
+                            rq = client.write_coils(0, command, unit=1)
+                            rr = client.read_coils(0, 8, unit=1)
                     print('%sDone. (%.3fs)' % (s, time.time() - t))
 
 
@@ -195,6 +215,9 @@ if __name__ == '__main__':
     parser.add_argument('--view-img', action='store_true', help='display results')
     opt = parser.parse_args()
     print(opt)
+
+    client = ModbusClient('10.10.10.10', 502)
+    client.connect()
 
     with torch.no_grad():
         detect()
